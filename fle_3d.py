@@ -18,7 +18,7 @@ class FLEBasis3D:
     #   mode            choose either "real" or "complex" output
     #   sph_harm_solver solver to use for spherical harmonics expansions.
     #                   Choose either "nvidia_torch" or "FastTransforms.jl".
-    #   reduce_memory   True: reduces the number of radial points in defining
+    #   reduce_memory   If True, reduces the number of radial points in defining
     #                   NUFFT grids, and does an alternative interpolation to
     #                   compensate. To reproduce the tables and figures of the
     #                   paper, set this to False. 

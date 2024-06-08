@@ -9,13 +9,20 @@ import mrcfile
 
 
 def main():
+    #######
+    # If True, reduces the number of radial points in defining
+    # NUFFT grids, and does an alternative interpolation to
+    # compensate. To reproduce the tables and figures of the
+    # paper, set this to False. 
+    reduce_memory = True
+    #######
 
     # test 1: Verify that code agrees with dense matrix mulitplication
     print("test 1")
     print('... testing nvidia_torch and real mode')
-    test1_fle_vs_dense("nvidia_torch", "real")
-    print('... testing nvidia_torch and complex mode')
-    test1_fle_vs_dense("nvidia_torch", "complex")
+    test1_fle_vs_dense("nvidia_torch", "real", reduce_memory)
+    print('... testing nvidia_torch and complex mode', reduce_memory)
+    test1_fle_vs_dense("nvidia_torch", "complex", reduce_memory)
 
     # ##########################
     # #NOTE: there are compatibility issues when loading both
@@ -30,20 +37,20 @@ def main():
 
     # # test 2: verify that code can lowpass
     print("test 2")
-    test2_fle_lowpass()
+    test2_fle_lowpass(reduce_memory)
 
     # # # test 3: verify timing 
     print("test 3")
-    test3_part_timing()
+    test3_part_timing(reduce_memory)
 
     # # # test 4: check the error of
     # # least-squares expansions into the basis
     print("test 4")
-    test4_expand_error_test()
+    test4_expand_error_test(reduce_memory)
 
     return
 
-def test1_fle_vs_dense(sph_harm_solver,mode):
+def test1_fle_vs_dense(sph_harm_solver,mode, reduce_memory):
 
     Ns = [32]
     ls = []
@@ -63,12 +70,12 @@ def test1_fle_vs_dense(sph_harm_solver,mode):
     for l in Ns:
         print('Precomputing FLE...')
         bandlimit = l
-        fle = FLEBasis3D(l, bandlimit, 1e-4, sph_harm_solver=sph_harm_solver,mode=mode,reduce_memory=False)
+        fle = FLEBasis3D(l, bandlimit, 1e-4, sph_harm_solver=sph_harm_solver,mode=mode,reduce_memory=reduce_memory)
         print('Creating dense matrix...')
         B = fle.create_denseB(numthread=1)
         print('... dense matrix created')
         for eps in (1e-4, 1e-7, 1e-10, 1e-14):
-            tmperra, tmperrx, tmperra2, tmperrx2 = test1_fle_vs_dense_helper(sph_harm_solver,mode,l, eps, B)
+            tmperra, tmperrx, tmperra2, tmperrx2 = test1_fle_vs_dense_helper(sph_harm_solver,mode,l, eps, B, reduce_memory)
             erra[i] = tmperra
             errx[i] = tmperrx
             erra2[i] = tmperra2
@@ -103,14 +110,14 @@ def test1_fle_vs_dense(sph_harm_solver,mode):
     print("")
 
 
-def test1_fle_vs_dense_helper(sph_harm_solver,mode,N, eps, B):
+def test1_fle_vs_dense_helper(sph_harm_solver,mode,N, eps, B, reduce_memory):
 
     # Parameters
     # Bandlimit scaled so that N is maximum suggested bandlimit
     print('Running test with N='+ str(N))
     # Basis pre-computation
     bandlimit = N
-    fle = FLEBasis3D(N, bandlimit, eps, sph_harm_solver=sph_harm_solver,mode=mode,reduce_memory=False)
+    fle = FLEBasis3D(N, bandlimit, eps, sph_harm_solver=sph_harm_solver,mode=mode,reduce_memory=reduce_memory)
 
 
     # load example volume
@@ -139,7 +146,7 @@ def test1_fle_vs_dense_helper(sph_harm_solver,mode,N, eps, B):
 
 
 
-def test2_fle_lowpass():
+def test2_fle_lowpass(reduce_memory):
 
     # Parameters
     # Use N x N x N volumes
@@ -150,7 +157,7 @@ def test2_fle_lowpass():
     eps = 1e-6
 
     # Basis pre-computation
-    fle = FLEBasis3D(N, bandlimit, eps, reduce_memory=False)
+    fle = FLEBasis3D(N, bandlimit, eps, reduce_memory=reduce_memory)
 
     # load example volume
     datafile = "test_volumes/data_N=" + str(N) + ".mat"
@@ -191,7 +198,7 @@ def test3_part_timing():
         print('Running N =', N)
         bandlimit = N
         t1 = time.time()
-        fle = FLEBasis3D(N, bandlimit, eps, reduce_memory=False)
+        fle = FLEBasis3D(N, bandlimit, eps, reduce_memory=reduce_memory)
         dt = time.time() - t1
         precomp[i] = dt
         # load example volume
@@ -361,7 +368,7 @@ def test3_helper(N, fle, x):
 
 
 
-def test4_expand_error_test():
+def test4_expand_error_test(reduce_memory):
 
     ls = []
     epss = []
@@ -373,7 +380,7 @@ def test4_expand_error_test():
     err = np.zeros(n)
     err2 = np.zeros(n)
     for i in range(n):
-        err[i], err2[i] = test4_helper(ls[i], epss[i])
+        err[i], err2[i] = test4_helper(ls[i], epss[i], reduce_memory)
 
     # make {tab:accuracy}
     print("expand test")
@@ -389,7 +396,7 @@ def test4_expand_error_test():
         )
 
 
-def test4_helper(N, eps):
+def test4_helper(N, eps, reduce_memory):
 
     # Parameters
     # Bandlimit scaled so that N is maximum suggested bandlimit
@@ -397,7 +404,7 @@ def test4_helper(N, eps):
     # Basis pre-computation
     print('Running N =',N)
     bandlimit = N
-    fle = FLEBasis3D(N, bandlimit, eps, mode="complex", reduce_memory=False)
+    fle = FLEBasis3D(N, bandlimit, eps, mode="complex", reduce_memory=reduce_memory)
 
     # load example volume
     datafile = "test_volumes/data_N=" + str(N) + ".mat"
