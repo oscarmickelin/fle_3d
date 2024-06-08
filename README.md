@@ -68,7 +68,7 @@ which solves a least squares problem instead of just applying THB once. The latt
 Once you have coefficients "coeff" in the basis, you can get back the corresponding function on the NxNxN grid by running
 
 ```bash
-image = fle.evaluate(coeff)
+volume = fle.evaluate(coeff)
 ```
 
 which corresponds to applying the operator in equation TBD in the paper.
