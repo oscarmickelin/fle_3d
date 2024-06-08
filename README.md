@@ -24,10 +24,10 @@ python3 test_fle_3d.py
 
 ## Usage
 
-Given a volume x of size NxNxN that you want to expand into the ball harmonic basis, first create a basis object by calling
+Given a volume x represented by a 3D array of size NxNxN that you want to expand into the ball harmonic basis, first create a basis object by calling
 ```python
 from fle_3d import FLEBasis3D
-N = 128         #replace this by the size of your volume
+N = 128         #replace this by the side-length of your volume array
 bandlimit = N   #maximum number of basis functions to use
 eps = 1e-7      #desired accuracy
 fle = FLEBasis3D(N, bandlimit, eps)
