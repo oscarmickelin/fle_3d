@@ -42,22 +42,25 @@ class FLEBasis3D:
         self.sph_harm_solver = sph_harm_solver
         self.reduce_memory = reduce_memory
 
-
-        maxitr = 1 + int(6 * np.log2(N))
+        if not maxitr:
+            maxitr = 1 + int(6 * np.log2(N))
 
         numsparse = 32
         if eps >= 1e-10:
             numsparse = 32 
-            maxitr = 1 + int(3 * np.log2(N))
+            if not maxitr:
+                maxitr = 1 + int(3 * np.log2(N))
 
         if eps >= 1e-7:
             numsparse = 16
-            maxitr = 1 + int(2 * np.log2(N))
+            if not maxitr:
+                maxitr = 1 + int(2 * np.log2(N))
  
 
         if eps >= 1e-4:
             numsparse = 8
-            maxitr = 1 + int(np.log2(N))
+            if not maxitr:
+                maxitr = 1 + int(np.log2(N))
 
 
         self.maxitr = maxitr
