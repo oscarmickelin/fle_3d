@@ -32,14 +32,21 @@ fle = FLEBasis3D(N, bandlimit, eps)
 Here, eps is the relative error tolerance you want in applying the basis expansion, corresponding to the epsilon in Theorem TBD in the paper. "Bandlimit" is a parameter that determines how many basis functions to use and corresponds to the variable lambda in equation TBD in the paper, scaled so that N is the maximum suggested.
 
 All arguments to FLEBasis3D:
+
 N               size of volume to be expanded
+
 bandlimit       bandlimit parameter (scaled so that N is max suggested)
+
 eps             requested relative precision
+
 maxitr          maximum number of iterations for the expand method
+
 maxfun          maximum number of basis functions to use
+
 mode            choose either "real" or "complex" output, using either real-valued or complex-valued basis functions
                 sph_harm_solver solver to use for spherical harmonics expansions.
                 Choose either "nvidia_torch" or "FastTransforms.jl".
+                
 reduce_memory   If True, reduces the number of radial points in defining
                 NUFFT grids, and does an alternative interpolation to
                 compensate. To reproduce the tables and figures of the
