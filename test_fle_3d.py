@@ -21,7 +21,7 @@ def main():
     print("test 1")
     print('... testing nvidia_torch and real mode')
     test1_fle_vs_dense("nvidia_torch", "real", reduce_memory)
-    print('... testing nvidia_torch and complex mode', reduce_memory)
+    print('... testing nvidia_torch and complex mode')
     test1_fle_vs_dense("nvidia_torch", "complex", reduce_memory)
 
     # ##########################
