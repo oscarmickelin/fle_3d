@@ -25,7 +25,7 @@ python3 test_fle_3d.py
 ## Usage
 
 Given a volume x of size NxNxN that you want to expand into the ball harmonic basis, first create a basis object by calling
-```bash
+```python
 from fle_3d import FLEBasis3D
 fle = FLEBasis3D(N, bandlimit, eps)
 ```
@@ -54,20 +54,20 @@ All arguments to FLEBasis3D:
     
 To go from the volume to the basis coefficients, you would then call either
 
-```bash
+```python
 coeff = fle.evaluate_t(x)
 ```
 
 which applies the operator in equation TBD of the paper, or 
 
-```bash
+```python
 coeff = fle.expand(x)
 ```
 which solves a least squares problem instead of just applying THB once. The latter can be more accurate, but takes a bit longer since it applies evaluate_t a few times using Richardson iteration.
 
 Once you have coefficients "coeff" in the basis, you can get back the corresponding function on the NxNxN grid by running
 
-```bash
+```python
 volume = fle.evaluate(coeff)
 ```
 
