@@ -13,7 +13,7 @@ pip install numpy scipy finufft joblib
 pip install torch-harmonics
 
 #########
-# alternative fast spherical harmonics transform (optional)
+# install alternative fast spherical harmonics transform (optional)
 pip install juliacall
 python3 install_julia_transforms.py
 #########
