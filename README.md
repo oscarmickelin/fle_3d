@@ -33,21 +33,21 @@ Here, eps is the relative error tolerance you want in applying the basis expansi
 
 All arguments to FLEBasis3D:
 
-N        &emsp;&emsp;&emsp;       size of volume to be expanded
+- N:    size of volume to be expanded
 
-bandlimit   &emsp;&emsp;&emsp;    bandlimit parameter (scaled so that N is max suggested)
+- bandlimit:    bandlimit parameter (scaled so that N is max suggested)
 
-eps        &emsp;&emsp;&emsp;     requested relative precision
+- eps:     requested relative precision
 
-maxitr    &emsp;&emsp;&emsp;      maximum number of iterations for the expand method
+- maxitr:      maximum number of iterations for the expand method
 
-maxfun    &emsp;&emsp;&emsp;      maximum number of basis functions to use
+- maxfun:      maximum number of basis functions to use
 
-mode     &emsp;&emsp;&emsp;       choose either "real" or "complex" output, using either real-valued or complex-valued basis functions
+- mode:       choose either "real" or "complex" output, using either real-valued or complex-valued basis functions
                 sph_harm_solver solver to use for spherical harmonics expansions.
                 Choose either "nvidia_torch" or "FastTransforms.jl".
                 
-reduce_memory  &emsp;&emsp;&emsp; If True, reduces the number of radial points in defining
+- reduce_memory: If True, reduces the number of radial points in defining
                 NUFFT grids, and does an alternative interpolation to
                 compensate. To reproduce the tables and figures of the
                 paper, set this to False. 
