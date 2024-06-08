@@ -21,3 +21,33 @@ python3 install_julia_transforms.py
 # run test code (optional)
 python3 test_fle_3d.py
 ```
+
+## Usage
+
+Given a volume x of size NxNxN that you want to expand into the ball harmonic basis, first create a basis object by calling
+```bash
+from fle_3d import FLEBasis3D
+fle = FLEBasis3D(N, bandlimit, eps)
+```
+Here, eps is the relative error tolerance you want in applying the basis expansion, corresponding to the epsilon in Theorem TBD in the paper. "Bandlimit" is a parameter that determines how many basis functions to use and corresponds to the variable lambda in equation TBD in the paper, scaled so that N is the maximum suggested.
+
+To go from the volume to the basis coefficients, you would then call either
+
+```bash
+coeff = fle.evaluate_t(x)
+```
+
+which applies the operator in equation TBD of the paper, or 
+
+```bash
+coeff = fle.expand(x)
+```
+which solves a least squares problem instead of just applying THB once. The latter can be more accurate, but takes a bit longer since it applies evaluate_t a few times using Richardson iteration.
+
+Once you have coefficients "coeff" in the basis, you can get back the corresponding function on the NxNxN grid by running
+
+```bash
+image = fle.evaluate(coeff)
+```
+
+which corresponds to applying the operator in equation TBD in the paper.
