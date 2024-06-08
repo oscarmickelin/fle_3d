@@ -29,7 +29,7 @@ Given a volume x of size NxNxN that you want to expand into the ball harmonic ba
 from fle_3d import FLEBasis3D
 N = 128         #replace this by the size of your volume
 bandlimit = N   #maximum number of basis functions to use
-eps = 1e=7      #desired accuracy
+eps = 1e-7      #desired accuracy
 fle = FLEBasis3D(N, bandlimit, eps)
 ```
 Here, eps is the accuracy desired in applying the basis expansion, corresponding to the epsilon in Theorem TBD in the paper. "Bandlimit" is a parameter that determines how many basis functions to use and corresponds to the variable lambda in equation TBD in the paper, scaled so that N is the maximum suggested.
