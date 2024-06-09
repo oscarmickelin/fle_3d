@@ -66,7 +66,7 @@ which applies the operator in equation TBD of the paper, or
 ```python
 coeff = fle.expand(x)
 ```
-which solves a least squares problem instead of just applying TBD once. The latter can be more accurate, but takes a bit longer since it applies evaluate_t a few times using Richardson iteration.
+which solves a least squares problem instead of just applying TBD once. The latter can be more accurate, but takes a bit longer since it applies evaluate_t ```maxitr''' times using Richardson iteration.
 
 Once you have coefficients ```coeff``` in the basis, you can evaluate the corresponding function with expansion coefficients ```coeff``` on the NxNxN grid by running
 
