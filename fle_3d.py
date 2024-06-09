@@ -12,11 +12,11 @@ class FLEBasis3D:
     #   N               basis for N x N x N volumes
     #   bandlimit       bandlimit parameter (scaled so that N is max suggested)
     #   eps             requested relative precision
-    #   maxitr          maximum number of iterations for the expand method
-    #   maxfun          maximum number of basis functions to use
-    #   mode            choose either "real" or "complex" output
+    #   maxitr          maximum number of iterations for the expand method (if not specified, pre-tuned values are used)
+    #   maxfun          maximum number of basis functions to use (if not specified, the number implied by the choice of bandlimit is used)
+    #   mode            choose either "real" or "complex" (default) output
     #   sph_harm_solver solver to use for spherical harmonics expansions.
-    #                   Choose either "nvidia_torch" or "FastTransforms.jl".
+    #                   Choose either "nvidia_torch" (default) or "FastTransforms.jl".
     #   reduce_memory   If True, reduces the number of radial points in defining
     #                   NUFFT grids, and does an alternative interpolation to
     #                   compensate. To reproduce the tables and figures of the
