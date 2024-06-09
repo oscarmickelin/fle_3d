@@ -31,9 +31,9 @@ def main():
     # # above and uncomment the julia tests below,
     # # and run them in a new shell.
     # # print('... testing FastTransforms.jl and real mode')
-    # # test1_fle_vs_dense("FastTransforms.jl", "real")
+    # # test1_fle_vs_dense("FastTransforms.jl", "real", reduce_memory)
     # # print('... testing FastTransforms.jl and complex mode')
-    # # test1_fle_vs_dense("FastTransforms.jl", "complex")
+    # # test1_fle_vs_dense("FastTransforms.jl", "complex", reduce_memory)
     # ##########################
 
     # # test 2: verify that code can lowpass
@@ -54,29 +54,29 @@ def main():
 def test1_fle_vs_dense(sph_harm_solver,mode, reduce_memory):
 
     Ns = [32]
-    ls = []
+    Nns = []
     epss = []
     
-    for l in Ns:        
+    for N in Ns:        
     	for eps in (1e-4, 1e-7, 1e-10, 1e-14):
-            ls.append(l)
+            Nns.append(N)
             epss.append(eps)
-    n = len(ls)
+    n = len(Nns)
     erra = np.zeros(n)
     errx = np.zeros(n)
     erra2 = np.zeros(n)
     errx2 = np.zeros(n)
     
     i = 0
-    for l in Ns:
+    for N in Ns:
         print('Precomputing FLE...')
-        bandlimit = l
-        fle = FLEBasis3D(l, bandlimit, 1e-4, sph_harm_solver=sph_harm_solver,mode=mode,reduce_memory=reduce_memory)
+        bandlimit = N
+        fle = FLEBasis3D(N, bandlimit, 1e-4, sph_harm_solver=sph_harm_solver,mode=mode,reduce_memory=reduce_memory)
         print('Creating dense matrix...')
         B = fle.create_denseB(numthread=1)
         print('... dense matrix created')
         for eps in (1e-4, 1e-7, 1e-10, 1e-14):
-            tmperra, tmperrx, tmperra2, tmperrx2 = test1_fle_vs_dense_helper(sph_harm_solver,mode,l, eps, B, reduce_memory)
+            tmperra, tmperrx, tmperra2, tmperrx2 = test1_fle_vs_dense_helper(sph_harm_solver,mode,N, eps, B, reduce_memory)
             erra[i] = tmperra
             errx[i] = tmperrx
             erra2[i] = tmperra2
@@ -92,7 +92,7 @@ def test1_fle_vs_dense(sph_harm_solver,mode, reduce_memory):
     print(r"\hline")
     for i in range(n):
         print(
-            ls[i],
+            Nns[i],
             "&",
             "{:12.5e}".format(epss[i]),
             "&",
@@ -371,23 +371,23 @@ def test3_helper(N, fle, x):
 
 def test4_expand_error_test(reduce_memory):
 
-    ls = []
+    Nns = []
     epss = []
     for eps in (1e-4, 1e-7, 1e-10, 1e-14):
-        for l in [32,48,56,64,128,256]:
-            ls.append(l)
+        for N in [32,48,56,64,128,256]:
+            Nns.append(l)
             epss.append(eps)
-    n = len(ls)
+    n = len(Nns)
     err = np.zeros(n)
     err2 = np.zeros(n)
     for i in range(n):
-        err[i], err2[i] = test4_helper(ls[i], epss[i], reduce_memory)
+        err[i], err2[i] = test4_helper(Nns[i], epss[i], reduce_memory)
 
     # make {tab:accuracy}
     print("expand test")
     for i in range(n):
         print(
-            ls[i],
+            Nns[i],
             " ",
             "{:12.5e}".format(epss[i]),
             " ",

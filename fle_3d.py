@@ -437,7 +437,16 @@ class FLEBasis3D:
         self.idx = idx
 
     def create_denseB(self, numthread=1):
-        from pyshtools.expand import spharm_lm
+        #####
+        # NOTE THE FOLLOWING ISSUE WITH SPL.SPH_HARM:
+        # https://github.com/scipy/scipy/issues/7778
+        # We therefore use pyshtools for large m,
+        # although pyshtools is slower. The cutoff m = 75
+        # works for N <= 64. For larger N, make the
+        # cutoff 75 smaller if you want to compute the dense matrix
+        #####
+        if self.N > 32:
+            from pyshtools.expand import spharm_lm
 
         psi = [None] * self.ne
         for i in range(self.ne):
@@ -446,15 +455,8 @@ class FLEBasis3D:
             lmd = self.lmds[i]
             c = self.cs[i]
 
-            #####
-            # NOTE THE FOLLOWING ISSUE WITH SPL.SPH_HARM:
-            # https://github.com/scipy/scipy/issues/7778
-            # We therefore use pyshtools for large m,
-            # although pyshtools is slower. The following
-            # works for N <= 64. For larger N, make the
-            # cutoff 75 smaller if you want to compute the dense matrix
-            #####
-            if np.abs(m) <= 75:
+
+            if (np.abs(m) <= 75) or (self.N <= 32):
                 if m >= 0:
                     psi[i] = (
                         lambda r, t, p, c=c, l=l, m=m, lmd=lmd: c
