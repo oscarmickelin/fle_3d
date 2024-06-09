@@ -33,7 +33,8 @@ pip install joblib mrcfile
 # Note: highly optional. The only reason to do this
 # is to be able to run the accuracy tests for large N.
 # Otherwise, pyshtools is not used and there is no
-# need to install it 
+# need to install it
+
 pip install pyshtools
 #########
 
