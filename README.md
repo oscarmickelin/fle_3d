@@ -17,7 +17,6 @@ pip install torch-harmonics
 
 pip install juliacall
 python3 install_julia_transforms.py
-
 #########
 
 
@@ -28,7 +27,6 @@ python3 install_julia_transforms.py
 # first and third tests in test_fle_3d.py)
 
 pip install joblib mrcfile pyshtools
-
 #########
 
 # run test code (optional)
