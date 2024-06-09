@@ -55,7 +55,7 @@ All arguments to FLEBasis3D:
 
 - maxitr:      maximum number of iterations for the expand method (if not specified, pre-tuned values are used)
 
-- maxfun:      maximum number of basis functions to use (if not specified, the number implied by the choice of bandlimit is used)
+- maxfun:      maximum number of basis functions to use (if not specified, which is the default, the number implied by the choice of bandlimit is used)
 
 - mode:       choose either "real" or "complex" (default) output, using either real-valued or complex-valued basis functions
 
