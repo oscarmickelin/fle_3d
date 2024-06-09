@@ -26,7 +26,15 @@ python3 install_julia_transforms.py
 # (optional, but required to run the
 # first and third tests in test_fle_3d.py)
 
-pip install joblib mrcfile pyshtools
+pip install joblib mrcfile
+
+# to create the dense matrix operators for N > 32,
+# need to additionally install pyshtools
+# Note: highly optional. The only reason to do this
+# is to be able to run the accuracy tests for large N.
+# Otherwise, pyshtools is not used and there is no
+# need to install it 
+pip install pyshtools
 #########
 
 # run test code (optional)
