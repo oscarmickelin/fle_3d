@@ -53,13 +53,14 @@ All arguments to FLEBasis3D:
 
 - eps:     requested relative precision
 
-- maxitr:      maximum number of iterations for the expand method
+- maxitr:      maximum number of iterations for the expand method (if not specified, pre-tuned values are used)
 
-- maxfun:      maximum number of basis functions to use
+- maxfun:      maximum number of basis functions to use (if not specified, the number implied by the choice of bandlimit is used)
 
-- mode:       choose either "real" or "complex" output, using either real-valued or complex-valued basis functions
-                sph_harm_solver solver to use for spherical harmonics expansions.
-                Choose either "nvidia_torch" or "FastTransforms.jl".
+- mode:       choose either "real" or "complex" (default) output, using either real-valued or complex-valued basis functions
+
+- sph_harm_solver: solver to use for spherical harmonics expansions.
+                Choose either "nvidia_torch" (default) or "FastTransforms.jl".
                 
 - reduce_memory: If True, reduces the number of radial points in defining
                 NUFFT grids, and does an alternative interpolation to
