@@ -25,10 +25,11 @@ def main():
     test1_fle_vs_dense("nvidia_torch", "complex", reduce_memory)
 
     # ##########################
-    # #NOTE: there are compatibility issues when loading both
+    # # NOTE: there are compatibility issues when loading both
     # # torch and julia, in a single python shell.
-    # #If the following code crashes, comment out the julia
-    # #tests below, and run them in a new shell.
+    # # If the following code crashes, comment out the torch tests
+    # # above and uncomment the julia tests below,
+    # # and run them in a new shell.
     # # print('... testing FastTransforms.jl and real mode')
     # # test1_fle_vs_dense("FastTransforms.jl", "real")
     # # print('... testing FastTransforms.jl and complex mode')

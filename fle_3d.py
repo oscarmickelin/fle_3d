@@ -4,7 +4,6 @@ import scipy.sparse as spr
 from scipy.fft import dct, idct
 import finufft
 from scipy.io import loadmat
-from joblib import Parallel, delayed
 import os
 
 
@@ -531,6 +530,7 @@ class FLEBasis3D:
 
         # Compute in parallel if numthread > 1
         from tqdm import tqdm
+        from joblib import Parallel, delayed
 
         if numthread <= 1:
             B = np.zeros(
