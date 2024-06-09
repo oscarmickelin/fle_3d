@@ -7,15 +7,28 @@ If you use the code, please cite the above paper.
 ## Installation
 ```bash
 # install general dependencies
-pip install numpy scipy finufft joblib
+pip install numpy scipy finufft
 
 # install fast spherical harmonics transform
 pip install torch-harmonics
 
 #########
 # install alternative fast spherical harmonics transform (optional)
+
 pip install juliacall
 python3 install_julia_transforms.py
+
+#########
+
+
+#########
+# install dependencies to create dense matrix operators,
+# to check accuracy of the fast methods
+# (optional, but required to run the
+# first and third tests in test_fle_3d.py)
+
+pip install joblib mrcfile pyshtools
+
 #########
 
 # run test code (optional)
