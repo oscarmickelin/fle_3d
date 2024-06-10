@@ -52,7 +52,7 @@ bandlimit = N   #maximum number of basis functions to use
 eps = 1e-7      #desired accuracy
 fle = FLEBasis3D(N, bandlimit, eps)
 ```
-Here, eps is the accuracy desired in applying the basis expansion, corresponding to the epsilon in Theorem TBD in the paper. "Bandlimit" is a parameter that determines how many basis functions to use and corresponds to the variable lambda in equation TBD in the paper, scaled so that N is the maximum suggested.
+Here, eps is the accuracy desired in applying the basis expansion, corresponding to the epsilon in Theorem 3.1 in the paper. "Bandlimit" is a parameter that determines how many basis functions to use and corresponds to the variable lambda in equation (40) in the paper, scaled so that N is the maximum suggested.
 
 All arguments to FLEBasis3D:
 
@@ -82,12 +82,12 @@ To go from the volume to the basis coefficients, you would then call either
 coeff = fle.evaluate_t(x)
 ```
 
-which applies the operator in equation TBD of the paper, or 
+which applies the operator $\tilde{B}^*$ in Theorem 3.1 of the paper, or 
 
 ```python
 coeff = fle.expand(x)
 ```
-which solves a least squares problem instead of just applying TBD once. The latter can be more accurate, but takes a bit longer since it applies evaluate_t ```maxitr``` times using Richardson iteration.
+which solves a least squares problem instead of just applying equation $\tilde{B}^*$ once. The latter can be more accurate, but takes a bit longer since it applies evaluate_t ```maxitr``` times using Richardson iteration.
 
 Once you have coefficients ```coeff``` in the basis, you can evaluate the corresponding function with expansion coefficients ```coeff``` on the NxNxN grid by running
 
@@ -95,4 +95,4 @@ Once you have coefficients ```coeff``` in the basis, you can evaluate the corres
 volume = fle.evaluate(coeff)
 ```
 
-which corresponds to applying the operator in equation TBD in the paper.
+which corresponds to applying the operator $\tilde{B}$ in Theorem 3.1 in the paper.
