@@ -1,8 +1,8 @@
 # fle_3d
 
-Code accompanying the paper:
+Code accompanying the paper: https://arxiv.org/abs/2406.05922
 
-If you use the code, please cite the above paper.
+If you find the code useful, please consider citing the above paper.
 
 ## Installation
 ```bash
