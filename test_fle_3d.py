@@ -326,19 +326,19 @@ def test3_helper(N, fle, x):
     f[fle.idx] = 0
     f = f.flatten()
 
-    # Step 1. {sec:fast_details}
+    # Step 1
     t0 = time.time()
     z = fle.step1(f)
     t1 = time.time()
     dt1 = t1 - t0
 
-    # Step 2. {sec:fast_details}
+    # Step 2
     t0 = time.time()
     b = fle.step2(z)
     t1 = time.time()
     dt2 = t1 - t0
 
-    # Step 3: {sec:fast_details}
+    # Step 3
     t0 = time.time()
     a = fle.step3(b)
     t1 = time.time()
