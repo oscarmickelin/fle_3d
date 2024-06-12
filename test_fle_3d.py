@@ -183,7 +183,7 @@ def test2_fle_lowpass(reduce_memory):
             mrc.set_data(np.float32(np.real(np.squeeze(np.float32(xlow)))))
 
 
-def test3_part_timing():
+def test3_part_timing(reduce_memory):
 
     nr = 1  # number of trials
     Ns = [32,48,64,128,256]
