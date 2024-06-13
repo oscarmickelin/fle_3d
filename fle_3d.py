@@ -14,7 +14,7 @@ class FLEBasis3D:
     #   eps             requested relative precision
     #   maxitr          maximum number of iterations for the expand method (if not specified, pre-tuned values are used)
     #   maxfun          maximum number of basis functions to use (if not specified, which is the default, the number implied by the choice of bandlimit is used)
-    #   max_l           use only indices l < max_l, if not None (default).
+    #   max_l           use only indices l <= max_l, if not None (default).
     #   mode            choose either "real" or "complex" (default) output
     #   sph_harm_solver solver to use for spherical harmonics expansions.
     #                   Choose either "nvidia_torch" (default) or "FastTransforms.jl".
