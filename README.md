@@ -66,7 +66,7 @@ All arguments to FLEBasis3D:
 
 - maxfun:      maximum number of basis functions to use (if not specified, which is the default, the number implied by the choice of bandlimit is used)
 
-- max_l           use only indices l < max_l, if not None (default).
+- max_l:           use only indices l < max_l, if not None (default).
 
 - mode:       choose either "real" or "complex" (default) output, using either real-valued or complex-valued basis functions
 
