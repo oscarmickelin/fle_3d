@@ -10,7 +10,7 @@ If you find the code useful, please cite the above paper.
 pip install numpy scipy finufft
 
 # install fast spherical harmonics transform
-pip install torch-harmonics
+pip install torch-harmonics torch
 
 #########
 # install alternative fast spherical harmonics transform (optional)
