@@ -362,7 +362,7 @@ class FLEBasis3D:
             isign=-1,
             dtype=np.complex128,
         )
-        self.plan2.setpts(x, y, z)
+        self.plan2.setpts(y, x, z) # this ordering gives the ordering of the grid points in the paper
 
         nufft_type = 1
         self.plan1 = finufft.Plan(
@@ -373,7 +373,7 @@ class FLEBasis3D:
             isign=1,
             dtype=np.complex128,
         )
-        self.plan1.setpts(x, y, z)
+        self.plan1.setpts(y, x, z) # this ordering gives the ordering of the grid points in the paper
 
         # Source points for interpolation, i.e., Chebyshev nodes in the radial direction
         # The way we set up the interpolation below is with source and target radii
@@ -518,9 +518,9 @@ class FLEBasis3D:
         x = np.arange(-R, R + self.N % 2)
         y = np.arange(-R, R + self.N % 2)
         z = np.arange(-R, R + self.N % 2)
-        ys, xs, zs = np.meshgrid(
+        xs, ys, zs = np.meshgrid(
             x, y, z
-        )  # this gives the same ordering as NUFFT
+        ) 
         xs = xs / R
         ys = ys / R
         zs = zs / R
@@ -924,6 +924,16 @@ class FLEBasis3D:
             b = np.concatenate((b, bz), axis=0)
             b = idct(b, axis=0, type=2) * 2 * b.shape[0]
 
+        #the below is a faster version of
+        # a = np.zeros(self.ne, dtype=np.complex128)
+        # for i in range(self.ne):
+        #     l = self.ls[i]
+        #     md = self.mds[i]
+        #     a[self.idlm_list[l][md]] = (
+        #         (self.A3[l] @ b[:, l, md])[: len(self.idlm_list[l][md])]
+        #     )
+        # a = a * self.cs
+        # a = a.flatten()
 
         a = np.zeros(self.ne, dtype=np.complex128)
         for l in range(self.lmax + 1):
@@ -1011,6 +1021,13 @@ class FLEBasis3D:
 
         return z
 
+    def my_pad(self,v,lv,k):
+        if k == 0:
+            return v
+        w = np.zeros((lv+k,),dtype=np.complex128)
+        w[:lv] = v
+        return w
+    
     def step3_H(self, a):
 
  
@@ -1024,14 +1041,23 @@ class FLEBasis3D:
             dtype=np.complex128,
             order="F",
         )
-
+        ## the below is required for the vectorization trick in the loop
+        a = np.conj(a)
         for l in range(self.lmax + 1):
             m_range = 2 * l + 1
-            for md in range(m_range):
-                b[:, l, md] = (
-                    np.conj(self.A3_T[l][:, : len(self.idlm_list[l][md])])
-                    @ a[self.idlm_list[l][md]]
-                )
+
+            #the below is a faster version of
+            # for md in range(m_range):
+            #     b[:, l, md] = (
+            #         np.conj(self.A3_T[l][:, : len(self.idlm_list[l][md])])
+            #         @ a[self.idlm_list[l][md]]
+            #     )
+
+            tli = self.idlm_list[l]
+            ts = self.A3_T[l].shape[1]
+
+            tmp = np.concatenate([self.my_pad(a[tli[md]],len(tli[md]), ts-len(tli[md])) for md in range(m_range)]).reshape(-1,m_range,order='F')
+            b[:, l, :m_range] = np.conj(self.A3_T[l]@tmp)    
 
         if self.n_interp > self.n_radial:
             b = dct(b, axis=0, type=2)
