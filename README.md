@@ -70,6 +70,8 @@ All arguments to FLEBasis3D:
 
 - mode:       choose either "real" or "complex" (default) output, using either real-valued or complex-valued basis functions
 
+-force_real:   If true, get a speedup by a factor 2 by enforcing that the source (for evaluate_t) or target (for evaluate) is real. To reproduce the tables and figures of the paper, set this to True.
+
 - sph_harm_solver: solver to use for spherical harmonics expansions.
                 Choose either "nvidia_torch" (default) or "FastTransforms.jl".
                 
