@@ -16,6 +16,8 @@ class FLEBasis3D:
     #   maxfun          maximum number of basis functions to use (if not specified, which is the default, the number implied by the choice of bandlimit is used)
     #   max_l           use only indices l <= max_l, if not None (default).
     #   mode            choose either "real" or "complex" (default) output
+    #   force_real      If true, get a speedup by a factor 2 by enforcing that the source (for evaluate_t) or target (for evaluate)
+    #                   is real. To reproduce the tables and figures of the paper, set this to True.
     #   sph_harm_solver solver to use for spherical harmonics expansions.
     #                   Choose either "nvidia_torch" (default) or "FastTransforms.jl".
     #   reduce_memory   If True, reduces the number of radial points in defining
@@ -31,6 +33,7 @@ class FLEBasis3D:
         maxfun=None,
         max_l=None,
         mode="complex",
+        force_real=False,
         sph_harm_solver="nvidia_torch",
         reduce_memory=True
     ):
@@ -39,6 +42,7 @@ class FLEBasis3D:
         assert realmode or complexmode
 
         self.complexmode = complexmode
+        self.force_real = force_real
         self.sph_harm_solver = sph_harm_solver
         self.reduce_memory = reduce_memory
 
@@ -207,7 +211,10 @@ class FLEBasis3D:
             if n_phi % 2 == 1:
                 n_phi += 1
 
-            phi = 2 * np.pi * np.arange(n_phi // 2) / n_phi
+            if self.force_real:
+                phi = 2 * np.pi * np.arange(n_phi // 2) / n_phi
+            else:
+                phi = 2 * np.pi * np.arange(n_phi) / n_phi
 
             # grid = "legendre-gauss"
             grid = "equiangular"
@@ -807,9 +814,13 @@ class FLEBasis3D:
         if self.sph_harm_solver == "FastTransforms.jl":
             z = z0.reshape(self.n_radial, self.n_theta, self.n_phi)
         else:
-            z0 = z0.reshape(self.n_radial, self.n_theta, self.n_phi // 2)
-            z[:, :, : self.n_phi // 2] = z0
-            z[:, ::-1, self.n_phi // 2 :] = np.conj(z0)
+            if self.force_real:
+                z0 = z0.reshape(self.n_radial, self.n_theta, self.n_phi // 2)
+                z[:, :, : self.n_phi // 2] = z0
+                z[:, ::-1, self.n_phi // 2 :] = np.conj(z0)
+            else:
+                z = z0.reshape(self.n_radial, self.n_theta, self.n_phi)
+
 
         z = z.flatten()
 
@@ -968,13 +979,21 @@ class FLEBasis3D:
             f[self.idx] = 0
             f = f.flatten()
         else:
-            # Half z
-            z = z[:, :, : self.n_phi // 2]
-            f = self.plan1.execute(z.flatten())
-            f = 2 * np.real(f)
-            f = f.reshape(self.N, self.N, self.N)
-            f[self.idx] = 0
-            f = f.flatten()
+            if self.force_real:
+                # Half z
+                z = z[:, :, : self.n_phi // 2]
+                f = self.plan1.execute(z.flatten())
+                f = 2 * np.real(f)
+                f = f.reshape(self.N, self.N, self.N)
+                f[self.idx] = 0
+                f = f.flatten()
+            else:
+                # Whole z
+                f = self.plan1.execute(z.flatten())
+                f = f.reshape(self.N, self.N, self.N)
+                f[self.idx] = 0
+                f = f.flatten()
+                
 
         return f
 
