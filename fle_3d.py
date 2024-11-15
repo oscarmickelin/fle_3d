@@ -254,6 +254,17 @@ class FLEBasis3D:
 
             jl.seval("using FastSphericalHarmonics")
             jl.seval("using FastTransforms")
+            jl.seval("using LinearAlgebra")
+            jl.seval("using LinearAlgebra: ldiv! as ldiv")
+
+            F = jl.FastSphericalHarmonics.sphrandn(jl.Float64, S, 2*S-1)
+
+            
+            self.P = jl.FastSphericalHarmonics.plan_sph2fourier(F)
+            self.PA = jl.FastSphericalHarmonics.plan_sph_analysis(F)
+            self.PS = jl.FastSphericalHarmonics.plan_sph_synthesis(F)
+
+
             self.jl = jl
             self.step2 = self.step2_fastTransforms
             self.step2_H = self.step2_H_fastTransforms
@@ -862,10 +873,19 @@ class FLEBasis3D:
             dtype=np.complex128,
         )
         for q in range(self.n_radial):
+            Fr = self.jl.Matrix(np.real(z[q, :, :]))
+            Fi = self.jl.Matrix(np.imag(z[q, :, :]))
+
+            Gr = self.PA*Fr
+            tmpr = np.complex128(self.jl.ldiv(self.P, Gr))
+
+            Gi = self.PA*Fi
+            tmpi = np.complex128(self.jl.ldiv(self.P, Gi))
+
             b[q, :, :] = self.fastTransforms_reshape_order_t(
-                np.complex128(self.jl.sph_transform(np.real(z[q, :, :])))
+                tmpr
             ) + 1j * self.fastTransforms_reshape_order_t(
-                np.complex128(self.jl.sph_transform(np.imag(z[q, :, :])))
+                tmpi
             )
 
         for l in range(self.lmax + 1):
@@ -1033,7 +1053,11 @@ class FLEBasis3D:
 
         for q in range(self.n_radial):
             b1 = bq[q, :, :]
-            z[q, :, :] = np.complex128(self.jl.sph_evaluate(self.jl.Matrix(b1)))
+            b1 = self.jl.Matrix(b1)
+            G=self.P*b1
+            H = self.PS*G
+            # z[q, :, :] = np.complex128(self.jl.sph_evaluate(self.jl.Matrix(b1)))
+            z[q, :, :] = np.complex128(H)
 
         for i in range(len(self.weights)):
             z[:, i, :] = z[:, i, :] * np.conj(self.weights[i])
