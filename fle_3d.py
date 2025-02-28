@@ -605,7 +605,7 @@ class FLEBasis3D:
         )
         lmds = (
             np.ones((max_l * (2 * max_l + 1) * max_k), dtype=np.float64)
-            * np.Inf
+            * np.inf
         )
 
         # load table of roots of jn (the scipy code has an issue where it gets
