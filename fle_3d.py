@@ -11,7 +11,10 @@ class FLEBasis3D:
     #
     #   N               basis for N x N x N volumes
     #   bandlimit       bandlimit parameter (scaled so that N is max suggested)
-    #   eps             requested relative precision
+    #   eps             requested relative precision in evaluate and evaluate_t
+    #   expand_eps      requested approximate relative precision in expand
+    #   expand_alpha    requested step-size in expand
+    #   expand_rel_tol  requested relative tolerance in expand
     #   maxitr          maximum number of iterations for the expand method (if not specified, pre-tuned values are used)
     #   maxfun          maximum number of basis functions to use (if not specified, which is the default, the number implied by the choice of bandlimit is used)
     #   max_l           use only indices l <= max_l, if not None (default).
@@ -29,6 +32,9 @@ class FLEBasis3D:
         N,
         bandlimit,
         eps,
+        expand_eps=1e-4,
+        expand_alpha=0.5,
+        expand_rel_tol=1e-2,
         maxitr=None,
         maxfun=None,
         max_l=None,
@@ -45,27 +51,37 @@ class FLEBasis3D:
         self.force_real = force_real
         self.sph_harm_solver = sph_harm_solver
         self.reduce_memory = reduce_memory
+        self.eps = eps
 
-        if not maxitr:
-            maxitr = 1 + int(6 * np.log2(N))
+        self.expand_alpha = expand_alpha
+        self.expand_rel_tol = expand_rel_tol
+        self.expand_eps = expand_eps
 
+        #sets numsparse and maxitr heuristically
         numsparse = 32
+        if not maxitr:
+            tmp = 1 + int(6 * np.log2(N))
+
         if eps >= 1e-10:
             numsparse = 32 
             if not maxitr:
-                maxitr = 1 + int(3 * np.log2(N))
+                tmp = 1 + int(4 * np.log2(N))
 
         if eps >= 1e-7:
             numsparse = 16
             if not maxitr:
-                maxitr = 1 + int(2 * np.log2(N))
- 
+                tmp = 1 + int(3 * np.log2(N))
 
         if eps >= 1e-4:
             numsparse = 8
             if not maxitr:
-                maxitr = 1 + int(np.log2(N))
+                tmp = 1 + int(np.log2(N))
+ 
+        if not maxitr:
+            maxitr = tmp
 
+        #sets maxitr heuristically
+        maxitr = max(maxitr,int(np.log(1/expand_eps)/expand_alpha)+1)
 
         self.maxitr = maxitr
 
@@ -665,7 +681,6 @@ class FLEBasis3D:
             threshold = (
                 bandlimit * np.pi / 2
             )
-
             ne = np.searchsorted(lmds, threshold, side="left") - 1
 
         # potentially subtract 1 from ne to keep -m, +m pairs
@@ -1160,13 +1175,22 @@ class FLEBasis3D:
                 else:
                     bn[:, l, m] = b[:, l, m]
         return bn
-
-    def expand(self, f):
+    
+    
+    def expand(self, f, toltype='l1linf'):
         b = self.evaluate_t(f)
-        a0 = b
+        a0 = self.expand_alpha*b
+        if toltype == 'l1linf':
+            no = np.linalg.norm(a0,np.Inf)
+            n1 = 1
+        elif toltype == 'l2':
+            no = np.linalg.norm(a0,2)
+            n1 = 2
         for iter in range(self.maxitr):
-            a0 = a0 - self.evaluate_t(self.evaluate(a0)) + b
-
+            a0old = a0
+            a0 = a0 - self.expand_alpha*(self.evaluate_t(self.evaluate(a0))) + self.expand_alpha*b
+            if np.linalg.norm(a0-a0old,n1)/no < self.expand_rel_tol:
+                break
         return a0
 
     def lowpass(self, a, bandlimit):
@@ -1176,6 +1200,8 @@ class FLEBasis3D:
         ne = np.searchsorted(self.lmds, threshold, side="left") - 1
         a[ne::] = 0
         return a
+    
+
 
     def barycentric_interp_sparse(self, x, xs, ys, s):
         # https://people.maths.ox.ac.uk/trefethen/barycentric.pdf
