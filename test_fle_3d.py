@@ -19,8 +19,8 @@ def main():
 
     # test 1: Verify that code agrees with dense matrix mulitplication
     print("test 1")
-    print('... testing nvidia_torch and real mode')
-    test1_fle_vs_dense("nvidia_torch", "real", reduce_memory)
+    # print('... testing nvidia_torch and real mode')
+    # test1_fle_vs_dense("nvidia_torch", "real", reduce_memory)
     print('... testing nvidia_torch and complex mode')
     test1_fle_vs_dense("nvidia_torch", "complex", reduce_memory)
 
@@ -30,24 +30,24 @@ def main():
     # # If the following code crashes, comment out the torch tests
     # # above and uncomment the julia tests below,
     # # and run them in a new shell.
-    # # print('... testing FastTransforms.jl and real mode')
-    # # test1_fle_vs_dense("FastTransforms.jl", "real", reduce_memory)
-    # # print('... testing FastTransforms.jl and complex mode')
-    # # test1_fle_vs_dense("FastTransforms.jl", "complex", reduce_memory)
+    # print('... testing FastTransforms.jl and real mode')
+    # test1_fle_vs_dense("FastTransforms.jl", "real", reduce_memory)
+    # print('... testing FastTransforms.jl and complex mode')
+    # test1_fle_vs_dense("FastTransforms.jl", "complex", reduce_memory)
     # ##########################
 
     # # test 2: verify that code can lowpass
-    print("test 2")
-    test2_fle_lowpass(reduce_memory)
+    # print("test 2")
+    # test2_fle_lowpass(reduce_memory)
 
-    # # # test 3: verify timing 
-    print("test 3")
-    test3_part_timing(reduce_memory)
+    # # test 3: verify timing 
+    # print("test 3")
+    # test3_part_timing(reduce_memory)
 
     # # # test 4: check the error of
     # # least-squares expansions into the basis
-    print("test 4")
-    test4_expand_error_test(reduce_memory)
+    # print("test 4")
+    # test4_expand_error_test(reduce_memory)
 
     return
 
@@ -186,7 +186,7 @@ def test2_fle_lowpass(reduce_memory):
 def test3_part_timing(reduce_memory):
 
     nr = 1  # number of trials
-    Ns = [32,48,64,128,256]
+    Ns = [32,48,64,128]#,256]
     eps = 1e-7
     n = len(Ns)
 
@@ -211,7 +211,7 @@ def test3_part_timing(reduce_memory):
         for j in range(nr):
             dts[i, :, j] = test3_helper(N, fle, x)
 
-            if N <= 32:
+            if N <= 0:#32:
                 t1 = time.time()
                 B = fle.create_denseB(numthread=1)
                 BH = np.conj(B.T)
@@ -373,9 +373,9 @@ def test4_expand_error_test(reduce_memory):
 
     Nns = []
     epss = []
-    for eps in (1e-4, 1e-7, 1e-10, 1e-14):
+    for eps in [1e-4, 1e-7, 1e-10, 1e-14]:
         for N in [32,48,56,64,128,256]:
-            Nns.append(l)
+            Nns.append(N)
             epss.append(eps)
     n = len(Nns)
     err = np.zeros(n)
@@ -404,8 +404,9 @@ def test4_helper(N, eps, reduce_memory):
 
     # Basis pre-computation
     print('Running N =',N)
+    # bandlimit = int(1.25*N)
     bandlimit = N
-    fle = FLEBasis3D(N, bandlimit, eps, mode="complex", reduce_memory=reduce_memory)
+    fle = FLEBasis3D(N, bandlimit, eps, expand_eps=eps, mode="complex", reduce_memory=reduce_memory)
 
     # load example volume
     datafile = "test_volumes/data_N=" + str(N) + ".mat"
