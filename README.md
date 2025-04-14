@@ -62,7 +62,7 @@ All arguments to FLEBasis3D:
 
 - eps:     requested relative precision
 
-- expand_eps:      requested relative precision in expand
+- expand_eps:      requested approximate relative precision in expand
 - expand_alpha:    requested step-size in expand
 - expand_rel_tol:  requested relative tolerance in expand
 
