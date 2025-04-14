@@ -370,7 +370,6 @@ def test3_helper(N, fle, x):
 
 
 def test4_expand_error_test(reduce_memory):
-
     Nns = []
     epss = []
     for eps in [1e-4, 1e-7, 1e-10, 1e-14]:
