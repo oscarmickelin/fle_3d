@@ -5,7 +5,7 @@ from fle_3d import FLEBasis3D
 import numpy as np
 from scipy.io import loadmat
 import mrcfile
-
+import matplotlib.pyplot as plt
 
 
 def main():
@@ -17,10 +17,15 @@ def main():
     reduce_memory = True
     #######
 
-    # test 1: Verify that code agrees with dense matrix mulitplication
+
+    # Test 0: Run several quick test on volumes of size 7 and 8
+    print("test 0") 
+    test0_quick_tests()
+
+    # # test 1: Verify that code agrees with dense matrix mulitplication
     print("test 1")
-    # print('... testing nvidia_torch and real mode')
-    # test1_fle_vs_dense("nvidia_torch", "real", reduce_memory)
+    print('... testing nvidia_torch and real mode')
+    test1_fle_vs_dense("nvidia_torch", "real", reduce_memory)
     print('... testing nvidia_torch and complex mode')
     test1_fle_vs_dense("nvidia_torch", "complex", reduce_memory)
 
@@ -37,23 +42,113 @@ def main():
     # ##########################
 
     # # test 2: verify that code can lowpass
-    # print("test 2")
-    # test2_fle_lowpass(reduce_memory)
+    #print("test 2")
+    #test2_fle_lowpass(reduce_memory)
 
-    # # test 3: verify timing 
-    # print("test 3")
-    # test3_part_timing(reduce_memory)
+    ## test 3: verify timing 
+    #print("test 3")
+    #test3_part_timing(reduce_memory)
 
-    # # # test 4: check the error of
-    # # least-squares expansions into the basis
+    # ## # test 4: check the error of
+    # ## least-squares expansions into the basis
     # print("test 4")
     # test4_expand_error_test(reduce_memory)
 
+    # print("test 5")
+    # test5(32)
+
+    print("test 6")
+    test6_visualize_eigenfunctions_for_odd_even_N()
+
     return
+
+def test0_quick_tests():
+
+    sph_harm_solver = "nvidia_torch"
+    mode = "real"
+    reduce_memory = False
+
+
+    Ns = [7,8]
+    eps = 1e-14
+    
+    n = len(Ns)
+    erra = np.zeros(n)
+    errx = np.zeros(n)
+    erra2 = np.zeros(n)
+    errx2 = np.zeros(n)
+    
+    print("eps =",eps)
+    for i,N in enumerate(Ns):
+        print("N =",N)
+        bandlimit = N
+        fle = FLEBasis3D(N, bandlimit, eps, sph_harm_solver=sph_harm_solver,mode=mode,reduce_memory=reduce_memory)
+        B = fle.create_denseB(numthread=1)
+        erra, errx, erra2, errx2 = test0_fle_vs_dense_helper(sph_harm_solver,mode,N, eps, B, reduce_memory)
+        print(erra)
+        print(errx)
+        print(erra2)
+        print(errx2)
+        print("")
+
+        print("Test timing code runs")
+        x = np.random.rand(N,N,N) 
+        x = x / np.max(np.abs(x.flatten()))
+        dts = test3_helper(N, fle, x)
+        print(dts)
+        print("")
+
+    
+        print("Test expand code runs")
+        bandlimit = N
+        fle = FLEBasis3D(N, bandlimit, eps, sph_harm_solver=sph_harm_solver,expand_eps=eps, mode="complex", reduce_memory=reduce_memory)
+
+        a0 = fle.expand(x)
+        x0 = fle.evaluate(a0)
+
+        err = np.linalg.norm(x.flatten() - x0.flatten(),np.inf)/np.linalg.norm(x.flatten(), 1)
+        err2 = np.linalg.norm(x.flatten() - x0.flatten(),2)/np.linalg.norm(x.flatten(), 2)
+        print(err)
+        print(err2)
+    return
+
+
+
+def test0_fle_vs_dense_helper(sph_harm_solver,mode,N, eps, B, reduce_memory):
+
+    # Parameters
+    # Basis pre-computation
+    bandlimit = N
+    fle = FLEBasis3D(N, bandlimit, eps, sph_harm_solver=sph_harm_solver,mode=mode,reduce_memory=reduce_memory)
+
+
+    x = np.random.rand(N,N,N) 
+    x = x / np.max(np.abs(x.flatten()))
+
+
+    # evaluate_t
+    a_dense = np.conj(B.T) @ (x.flatten())
+    a_fle = fle.evaluate_t(x)
+
+    # evaluate
+    xlow_dense = B @ a_dense
+    xlow_fle = fle.evaluate(a_dense)
+
+    # print
+    errx = np.linalg.norm(a_dense - a_fle,np.inf)/np.linalg.norm(x.flatten(), 1)
+    erra = np.linalg.norm(xlow_dense - xlow_fle.flatten(),np.inf)/np.linalg.norm(a_dense, 1)
+
+    errx2 = np.linalg.norm(a_dense - a_fle,2)/np.linalg.norm(a_dense.flatten(), 2)
+    erra2 = np.linalg.norm(xlow_dense - xlow_fle.flatten(),2)/np.linalg.norm(xlow_dense, 2)
+    return erra, errx, erra2, errx2
+
+
+
+
 
 def test1_fle_vs_dense(sph_harm_solver,mode, reduce_memory):
 
-    Ns = [32]
+    Ns = [33]
     Nns = []
     epss = []
     
@@ -88,7 +183,7 @@ def test1_fle_vs_dense(sph_harm_solver,mode, reduce_memory):
     print(sph_harm_solver,mode)
     print()
     print(r"\begin{tabular}{r|ccc}")
-    print("$N$ & $\epsilon$ & $\\text{err}_a$ & $\\text{err}_f$& $\\text{l2 err}_a$ & $\\text{l2 err}_f$ \\\\")
+    print("$N$ & $\\epsilon$ & $\\text{err}_a$ & $\\text{err}_f$& $\\text{l2 err}_a$ & $\\text{l2 err}_f$ \\\\")
     print(r"\hline")
     for i in range(n):
         print(
@@ -186,7 +281,8 @@ def test2_fle_lowpass(reduce_memory):
 def test3_part_timing(reduce_memory):
 
     nr = 1  # number of trials
-    Ns = [32,48,64,128]#,256]
+    #Ns = [33,49,65,129]#,256]
+    Ns = [32,33]
     eps = 1e-7
     n = len(Ns)
 
@@ -211,7 +307,7 @@ def test3_part_timing(reduce_memory):
         for j in range(nr):
             dts[i, :, j] = test3_helper(N, fle, x)
 
-            if N <= 0:#32:
+            if N <= 32:
                 t1 = time.time()
                 B = fle.create_denseB(numthread=1)
                 BH = np.conj(B.T)
@@ -324,6 +420,10 @@ def test3_helper(N, fle, x):
     N = fle.N
     f = np.copy(x).reshape(fle.N, fle.N, fle.N)
     f[fle.idx] = 0
+
+
+    if fle.N2 > fle.N:
+        f = np.pad(f, ((1, 0), (1, 0), (1, 0)))
     f = f.flatten()
 
     # Step 1
@@ -372,8 +472,8 @@ def test3_helper(N, fle, x):
 def test4_expand_error_test(reduce_memory):
     Nns = []
     epss = []
-    for eps in [1e-4, 1e-7, 1e-10, 1e-14]:
-        for N in [32,48,56,64,128,256]:
+    for eps in [1e-4, 1e-7]:#, 1e-10, 1e-14]:
+        for N in [33,65]:#[32,48,56,64,128,256]:
             Nns.append(N)
             epss.append(eps)
     n = len(Nns)
@@ -425,7 +525,86 @@ def test4_helper(N, eps, reduce_memory):
 
 
 
+def test5(N):
 
+    # Parameters
+    # Bandlimit scaled so that N is maximum suggested bandlimit
+
+    # Basis pre-computation
+    print('Running N =',N)
+    # bandlimit = int(1.25*N)
+    bandlimit = N
+    eps = 1e-9
+    fle = FLEBasis3D(N, bandlimit, eps, expand_eps=eps, mode="real", reduce_memory=True, maxfun = 30)
+
+    # load example volume
+    datafile = "test_volumes/data_N=" + str(N) + ".mat"
+    data = loadmat(datafile)
+    x = data["x"]
+    x = x / np.max(np.abs(x.flatten()))
+    x = fle.evaluate(fle.evaluate_t(x))
+
+    B = fle.create_denseB()
+    for ind in range(20):
+        v = np.zeros((fle.ne,1), dtype = np.complex128)
+        v[ind] = 1
+        psi0 = fle.evaluate(v).flatten()
+        psi = B[:,ind]
+
+        x = np.linspace(-1,1,N,endpoint=False)
+        xs, ys, zs = np.meshgrid(x, x, x) 
+
+        psi2 = np.zeros(psi.shape, dtype = np.complex128)
+        l = fle.ls[ind]
+        m = fle.ms[ind]
+        k = fle.ks[ind]
+
+
+        rs = np.sqrt(xs**2 + ys**2 + zs**2)
+        ps = np.arctan2(ys, xs)
+        ts = np.arctan2(np.sqrt(xs**2 + ys**2), zs)
+        import scipy.special as spl
+
+        if m >= 0:
+            tmpp = fle.cs[ind]*spl.spherical_jn(l, fle.lmds[ind] * rs)*spl.sph_harm(m, l, ps, ts)*( rs <= 1 )
+            tmpm = fle.cs[ind]*spl.spherical_jn(l, fle.lmds[ind] * rs)*spl.sph_harm(-m, l, ps, ts)*( rs <= 1 )
+            psi2 = (tmpm + (-1)**m*tmpp) *fle.h/2
+        else:
+            tmpp = fle.cs[ind]*spl.spherical_jn(l, fle.lmds[ind] * rs)*spl.sph_harm(-m, l, ps, ts)*( rs <= 1 )
+            tmpm = fle.cs[ind]*spl.spherical_jn(l, fle.lmds[ind] * rs)*spl.sph_harm(m, l, ps, ts)*( rs <= 1 )
+            psi2 = (tmpm - (-1)**np.abs(m)*tmpp) *fle.h*1j/2
+
+        if m != 0:
+            psi2 *= np.sqrt(2)
+        psi2 = psi2.flatten()
+
+        print(np.linalg.norm(psi0-psi2), np.linalg.norm(psi-psi2), l, k, m)
+
+    return
+
+
+def test6_visualize_eigenfunctions_for_odd_even_N():
+    N = 8
+    bandlimit = N
+    eps = 1e-6
+    fle = FLEBasis3D(N, bandlimit, eps, mode="real")
+    B = fle.create_denseB()
+    psi = B[:,3].reshape(N,N,N)
+    plt.figure()
+    plt.title("N=8 3rd eigenfuction")
+    plt.imshow(np.sum(psi,axis=2))
+
+    N = 7
+    bandlimit = N
+    eps = 1e-6
+    fle = FLEBasis3D(N, bandlimit, eps, mode="real")
+    B = fle.create_denseB()
+    psi = B[:,3].reshape(N,N,N)
+    plt.figure()
+    plt.title("N=7 3rd eigenfuction")
+    plt.imshow(np.sum(psi,axis=2))
+
+    plt.show()
 
 
 

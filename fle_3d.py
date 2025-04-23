@@ -107,16 +107,16 @@ class FLEBasis3D:
     ):
 
         # Original dimension
-        self.N1 = N
+        self.N = N
         # If dimensions are odd, add one (will be zero-padding)
-        N = N + (N % 2)
+        N2 = N + (N % 2)
 
         # Either use maxfun or estimate an upper bound on maxfun based on N
         if maxfun:
             ne = maxfun
         else:
             # approximate number of pixels in the ball of radius N/2
-            ne = int(N**3 * np.pi / 6)
+            ne = int(N2**3 * np.pi / 6)
 
         ls, ks, ms, mds, lmds, cs, ne = self.lap_eig_ball(
             ne, bandlimit, max_l=max_l
@@ -147,16 +147,16 @@ class FLEBasis3D:
             / (
                 np.pi**2
                 * (3 / 2) ** (1 / 4)
-                * (3 + np.pi / 2 * np.log(5.3 * N))
+                * (3 + np.pi / 2 * np.log(5.3 * N2))
             )
         )
 
-        Q = int(np.ceil(max(5.3 * N, np.log2(1 / epsdis))))
+        Q = int(np.ceil(max(5.3 * N2, np.log2(1 / epsdis))))
 
         tmp = 1 / (np.sqrt(4 * np.pi))
 
         for Q2 in range(1, Q):
-            tmp = tmp / Q2 * ((np.sqrt(3) * np.pi / 16) ** (2 / 3) * (N + 1))
+            tmp = tmp / Q2 * ((np.sqrt(3) * np.pi / 16) ** (2 / 3) * (N2 + 1))
             if tmp < epsdis:
                 break
 
@@ -168,7 +168,7 @@ class FLEBasis3D:
         S = int(
             max(
                 np.ceil(
-                    2 * np.exp(1) * 6 ** (1 / 3) * np.pi ** (2 / 3) * (N // 2)
+                    2 * np.exp(1) * 6 ** (1 / 3) * np.pi ** (2 / 3) * (N2 // 2)
                 ),
                 4 * np.log2(27.6 / epsdis),
             )
@@ -307,7 +307,7 @@ class FLEBasis3D:
         self.n_theta = n_theta
         self.n_interp = n_interp
 
-        self.N = N
+        self.N2 = N2
 
         mdmax = np.max(mds)
         self.mdmax = mdmax
@@ -358,11 +358,10 @@ class FLEBasis3D:
 
         pts = pts.reshape(-1, 1)
 
-        R = N // 2
+        R = N2 // 2
         h = 1 / R ** (1.5)
 
         self.R = R
-        self.N = N
         self.h = h
 
         phi = phi.reshape(1, -1)
@@ -390,7 +389,7 @@ class FLEBasis3D:
         nufft_type = 2
         self.plan2 = finufft.Plan(
             nufft_type,
-            (N, N, N),
+            (N2, N2, N2),
             n_trans=1,
             eps=epsnufH,
             isign=-1,
@@ -401,7 +400,7 @@ class FLEBasis3D:
         nufft_type = 1
         self.plan1 = finufft.Plan(
             nufft_type,
-            (N, N, N),
+            (N2, N2, N2),
             n_trans=1,
             eps=epsnuf,
             isign=1,
@@ -459,9 +458,9 @@ class FLEBasis3D:
         self.A3_T = A3_T
 
         # Set up indices indicating the complement of the unit ball
-        xtmp = np.arange(-R, R + N % 2)
-        ytmp = np.arange(-R, R + N % 2)
-        ztmp = np.arange(-R, R + N % 2)
+        xtmp = np.arange(-R, R)
+        ytmp = np.arange(-R, R)
+        ztmp = np.arange(-R, R)
         xstmp, ystmp, zstmp = np.meshgrid(xtmp, ytmp, ztmp)
         xstmp = xstmp / R
         ystmp = ystmp / R
@@ -469,7 +468,10 @@ class FLEBasis3D:
         rstmp = np.sqrt(xstmp**2 + ystmp**2 + zstmp**2)
         idx = rstmp > 1 + 1e-13
 
-        self.idx = idx
+        self.idx2 = idx
+        self.idx = self.idx2
+        if self.N2 > self.N:
+            self.idx = self.idx2[1:, 1:, 1:]
 
     def create_denseB(self, numthread=1):
         #####
@@ -480,7 +482,7 @@ class FLEBasis3D:
         # works for N <= 64. For larger N, make the
         # cutoff 75 smaller if you want to compute the dense matrix
         #####
-        if self.N > 32:
+        if self.N2 > 32:
             from pyshtools.expand import spharm_lm
 
         psi = [None] * self.ne
@@ -491,7 +493,7 @@ class FLEBasis3D:
             c = self.cs[i]
 
 
-            if (np.abs(m) <= 75) or (self.N <= 32):
+            if (np.abs(m) <= 75) or (self.N2 <= 32):
                 if m >= 0:
                     psi[i] = (
                         lambda r, t, p, c=c, l=l, m=m, lmd=lmd: c
@@ -547,11 +549,11 @@ class FLEBasis3D:
         self.psi = psi
 
         # Evaluate eigenfunctions
-        R = self.N // 2
+        R = self.N2 // 2
         h = 1 / R ** (1.5)
-        x = np.arange(-R, R + self.N % 2)
-        y = np.arange(-R, R + self.N % 2)
-        z = np.arange(-R, R + self.N % 2)
+        x = np.arange(-R, R)
+        y = np.arange(-R, R)
+        z = np.arange(-R, R)
         xs, ys, zs = np.meshgrid(
             x, y, z
         ) 
@@ -571,7 +573,7 @@ class FLEBasis3D:
 
         if numthread <= 1:
             B = np.zeros(
-                (self.N, self.N, self.N, self.ne),
+                (self.N2, self.N2, self.N2, self.ne),
                 dtype=np.complex128,
                 order="F",
             )
@@ -584,7 +586,7 @@ class FLEBasis3D:
                 delayed(func)(i) for i in range(self.ne)
             )
             B_par = np.zeros(
-                (self.N, self.N, self.N, self.ne),
+                (self.N2, self.N2, self.N2, self.ne),
                 dtype=np.complex128,
                 order="F",
             )
@@ -592,14 +594,14 @@ class FLEBasis3D:
                 B_par[:, :, :, i] = B_list[i]
             B = h * B_par
 
-        if self.N > self.N1:
-            B = B[: self.N1, : self.N1, : self.N1, :]
-        B = B.reshape(self.N1**3, self.ne)
+        if self.N2 > self.N:
+            B = B[1:, 1:, 1:, :]
+        B = B.reshape(self.N**3, self.ne)
 
         if not self.complexmode:
             B = self.transform_complex_to_real(B, self.ms)
 
-        return B.reshape(self.N1**3, self.ne)
+        return B.reshape(self.N**3, self.ne)
 
     def lap_eig_ball(self, ne, bandlimit, max_l=None):
         # Computes dense matrix representation of the basis transform,
@@ -801,21 +803,21 @@ class FLEBasis3D:
             a = self.r2c @ a.flatten()
 
         f = self.step1_H(self.step2_H(self.step3_H(a)))
-        f = f.reshape(self.N, self.N, self.N)
+        f = f.reshape(self.N2, self.N2, self.N2)
 
-        if self.N > self.N1:
-            f = f[: self.N1, : self.N1, : self.N1]
+        if self.N2 > self.N:
+            f = f[1:, 1:, 1:]
         return f
 
     def evaluate_t(self, f):
-        f = np.copy(f).reshape(self.N1, self.N1, self.N1)
+        f = np.copy(f).reshape(self.N, self.N, self.N)
 
 
-        if self.N > self.N1:
-            f = np.pad(f, ((0, 1), (0, 1), (0, 1)))
+        if self.N2 > self.N:
+            f = np.pad(f, ((1, 0), (1, 0), (1, 0)))
 
         # Remove pixels outside disk
-        f[self.idx] = 0
+        f[self.idx2] = 0
         f = f.flatten()
 
 
@@ -829,7 +831,7 @@ class FLEBasis3D:
 
     def step1(self, f):
 
-        f = f.reshape(self.N, self.N, self.N)
+        f = f.reshape(self.N2, self.N2, self.N2)
         f = np.array(f, dtype=np.complex128)
 
         z = np.zeros(
@@ -1010,8 +1012,8 @@ class FLEBasis3D:
         if self.sph_harm_solver == "FastTransforms.jl":
             # Whole z
             f = self.plan1.execute(z.flatten())
-            f = f.reshape(self.N, self.N, self.N)
-            f[self.idx] = 0
+            f = f.reshape(self.N2, self.N2, self.N2)
+            f[self.idx2] = 0
             f = f.flatten()
         else:
             if self.force_real:
@@ -1019,14 +1021,14 @@ class FLEBasis3D:
                 z = z[:, :, : self.n_phi // 2]
                 f = self.plan1.execute(z.flatten())
                 f = 2 * np.real(f)
-                f = f.reshape(self.N, self.N, self.N)
-                f[self.idx] = 0
+                f = f.reshape(self.N2, self.N2, self.N2)
+                f[self.idx2] = 0
                 f = f.flatten()
             else:
                 # Whole z
                 f = self.plan1.execute(z.flatten())
-                f = f.reshape(self.N, self.N, self.N)
-                f[self.idx] = 0
+                f = f.reshape(self.N2, self.N2, self.N2)
+                f[self.idx2] = 0
                 f = f.flatten()
                 
 
@@ -1181,7 +1183,7 @@ class FLEBasis3D:
         b = self.evaluate_t(f)
         a0 = self.expand_alpha*b
         if toltype == 'l1linf':
-            no = np.linalg.norm(a0,np.Inf)
+            no = np.linalg.norm(a0,np.inf)
             n1 = 1
         elif toltype == 'l2':
             no = np.linalg.norm(a0,2)
