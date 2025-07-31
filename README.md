@@ -43,7 +43,7 @@ python3 install_julia_transforms.py
 # (optional, but required to run the
 # first and third tests in test_fle_3d.py)
 
-pip install joblib mrcfile tqdm
+pip install joblib mrcfile tqdm matplotlib
 
 # to create the dense matrix operators for N > 32,
 # need to additionally install pyshtools
