@@ -5,7 +5,7 @@ from scipy.fft import dct, idct
 import finufft
 from scipy.io import loadmat
 import os
-
+from scipy.sparse.linalg import LinearOperator, cg
 
 class FLEBasis3D:
     #
@@ -105,7 +105,6 @@ class FLEBasis3D:
         maxfun=None,
         max_l=None
     ):
-
         # Original dimension
         self.N = N
         # If dimensions are odd, add one (will be zero-padding)
@@ -212,7 +211,6 @@ class FLEBasis3D:
         if self.sph_harm_solver == "nvidia_torch":
             import torch
             import torch_harmonics as th
-
             self.step2 = self.step2_torch
             self.step2_H = self.step2_H_torch
             self.torch = torch
@@ -247,7 +245,6 @@ class FLEBasis3D:
 
             device = "cpu"
             # device = self.torch.device("cuda" if self.torch.cuda.is_available() else "cpu")
-
             sht = self.th.RealSHT(
                 n_theta, n_phi, lmax=self.lmax + 1, grid=grid, csphase=True
             ).to(device)
@@ -259,7 +256,6 @@ class FLEBasis3D:
                 grid=grid,
                 csphase=True,
             )
-
             self.sht = sht
             self.isht = isht
             self.device = device
@@ -1179,21 +1175,32 @@ class FLEBasis3D:
         return bn
     
     
-    def expand(self, f, toltype='l1linf'):
-        b = self.evaluate_t(f)
-        a0 = self.expand_alpha*b
-        if toltype == 'l1linf':
-            no = np.linalg.norm(a0,np.inf)
-            n1 = 1
-        elif toltype == 'l2':
-            no = np.linalg.norm(a0,2)
-            n1 = 2
-        for iter in range(self.maxitr):
-            a0old = a0
-            a0 = a0 - self.expand_alpha*(self.evaluate_t(self.evaluate(a0))) + self.expand_alpha*b
-            if np.linalg.norm(a0-a0old,n1)/no < self.expand_rel_tol:
-                break
-        return a0
+    def expand(self, f, solver='CG',toltype='l1linf'):
+
+        if solver == 'richardson':
+            b = self.evaluate_t(f)
+            a0 = self.expand_alpha*b
+            if toltype == 'l1linf':
+                no = np.linalg.norm(a0,np.inf)
+                n1 = 1
+            elif toltype == 'l2':
+                no = np.linalg.norm(a0,2)
+                n1 = 2
+            for iter in range(self.maxitr):
+                a0old = a0
+                a0 = a0 - self.expand_alpha*(self.evaluate_t(self.evaluate(a0))) + self.expand_alpha*b
+                if np.linalg.norm(a0-a0old,n1)/no < self.expand_rel_tol:
+                    break
+            return a0
+        
+        if solver == 'CG':
+            b = self.evaluate_t(f).reshape(-1,1)
+            operator = LinearOperator(
+                shape=(self.ne, self.ne),
+                matvec=lambda v: self.evaluate_t(self.evaluate(v))
+            )
+            a0,_ = cg(operator, b, rtol=self.expand_rel_tol, maxiter=self.maxitr)
+            return a0
 
     def lowpass(self, a, bandlimit):
         threshold = (
