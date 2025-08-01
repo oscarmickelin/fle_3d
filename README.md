@@ -29,6 +29,10 @@ pip install numpy scipy finufft
 # install fast spherical harmonics transform
 pip install torch-harmonics
 
+#the code has been tested with the following versions:
+# pip install "numpy<2"
+# pip install torch==1.12.0
+# pip install torch_harmonics==0.6.3
 #########
 # install alternative fast spherical harmonics transform (optional)
 
