@@ -22,7 +22,7 @@ def main():
     print("test 0") 
     test0_quick_tests()
 
-    # # test 1: Verify that code agrees with dense matrix mulitplication
+    # # # test 1: Verify that code agrees with dense matrix mulitplication
     print("test 1")
     print('... testing nvidia_torch and real mode')
     test1_fle_vs_dense("nvidia_torch", "real", reduce_memory)
@@ -42,20 +42,20 @@ def main():
     # ##########################
 
     # # test 2: verify that code can lowpass
-    #print("test 2")
-    #test2_fle_lowpass(reduce_memory)
+    print("test 2")
+    test2_fle_lowpass(reduce_memory)
 
     ## test 3: verify timing 
-    #print("test 3")
-    #test3_part_timing(reduce_memory)
+    print("test 3")
+    test3_part_timing(reduce_memory)
 
-    # ## # test 4: check the error of
-    # ## least-squares expansions into the basis
-    # print("test 4")
-    # test4_expand_error_test(reduce_memory)
+    ## # test 4: check the error of
+    ## least-squares expansions into the basis
+    print("test 4")
+    test4_expand_error_test(reduce_memory)
 
-    # print("test 5")
-    # test5(32)
+    print("test 5")
+    test5(32)
 
     print("test 6")
     test6_visualize_eigenfunctions_for_odd_even_N()
@@ -505,7 +505,7 @@ def test4_helper(N, eps, reduce_memory):
     print('Running N =',N)
     # bandlimit = int(1.25*N)
     bandlimit = N
-    fle = FLEBasis3D(N, bandlimit, eps, expand_eps=eps, mode="complex", reduce_memory=reduce_memory)
+    fle = FLEBasis3D(N, bandlimit, eps, expand_rel_tol=eps, expand_eps=eps, mode="complex", reduce_memory=reduce_memory)
 
     # load example volume
     datafile = "test_volumes/data_N=" + str(N) + ".mat"

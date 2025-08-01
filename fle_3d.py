@@ -59,26 +59,28 @@ class FLEBasis3D:
 
         #sets numsparse and maxitr heuristically
         numsparse = 32
-        if not maxitr:
-            tmp = 1 + int(6 * np.log2(N))
 
         if eps >= 1e-10:
             numsparse = 32 
-            if not maxitr:
-                tmp = 1 + int(4 * np.log2(N))
 
         if eps >= 1e-7:
             numsparse = 16
-            if not maxitr:
-                tmp = 1 + int(3 * np.log2(N))
 
         if eps >= 1e-4:
             numsparse = 8
-            if not maxitr:
-                tmp = 1 + int(np.log2(N))
- 
+
+
         if not maxitr:
-            maxitr = tmp
+            maxitr = 1 + int(6 * np.log2(N))
+            if expand_eps >= 1e-10:
+                maxitr = 1 + int(4 * np.log2(N))
+
+            if expand_eps >= 1e-7:
+                maxitr = 1 + int(3 * np.log2(N))
+
+            if expand_eps >= 1e-4:
+                maxitr = 1 + int(np.log2(N))
+
 
         #sets maxitr heuristically
         maxitr = max(maxitr,int(np.log(1/expand_eps)/expand_alpha)+1)
