@@ -23,6 +23,10 @@ If you find the code useful, please cite the accompanying paper.
 
 ## Installation
 ```bash
+# create conda environment
+conda create --name fle3 python=3.9 pip
+conda activate fle3
+
 # install general dependencies
 pip install numpy scipy finufft
 
