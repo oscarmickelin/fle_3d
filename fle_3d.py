@@ -796,7 +796,7 @@ class FLEBasis3D:
         return ws
 
     def evaluate(self, a):
-
+        a = np.complex128(a)
         if not self.complexmode:
             a = self.r2c @ a.flatten()
 
