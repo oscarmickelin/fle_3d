@@ -393,7 +393,7 @@ class FLEBasis3D:
             isign=-1,
             dtype=np.complex128,
         )
-        self.plan2.setpts(y, x, z) # this ordering gives the ordering of the grid points in the paper
+        self.plan2.setpts(x, y, z)
 
         nufft_type = 1
         self.plan1 = finufft.Plan(
@@ -404,7 +404,7 @@ class FLEBasis3D:
             isign=1,
             dtype=np.complex128,
         )
-        self.plan1.setpts(y, x, z) # this ordering gives the ordering of the grid points in the paper
+        self.plan1.setpts(x, y, z)
 
         # Source points for interpolation, i.e., Chebyshev nodes in the radial direction
         # The way we set up the interpolation below is with source and target radii
@@ -553,7 +553,7 @@ class FLEBasis3D:
         y = np.arange(-R, R)
         z = np.arange(-R, R)
         xs, ys, zs = np.meshgrid(
-            x, y, z
+            x, y, z, indexing='ij'
         ) 
         xs = xs / R
         ys = ys / R

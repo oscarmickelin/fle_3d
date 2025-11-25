@@ -552,7 +552,7 @@ def test5(N):
         psi = B[:,ind]
 
         x = np.linspace(-1,1,N,endpoint=False)
-        xs, ys, zs = np.meshgrid(x, x, x) 
+        xs, ys, zs = np.meshgrid(x, x, x, indexing='ij') 
 
         psi2 = np.zeros(psi.shape, dtype = np.complex128)
         l = fle.ls[ind]
