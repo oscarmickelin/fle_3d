@@ -2,7 +2,7 @@
 
 Code accompanying the paper: 
 
-Kileel, Joe, Nicholas F. Marshall, Oscar Mickelin, and Amit Singer. "Fast expansion into harmonics on the ball." SIAM Journal on Scientific Computing 47, no. 2 (2025): A1117-A1144. https://doi.org/10.1137/24M1668159
+Joe Kileel, Nicholas F. Marshall, Oscar Mickelin, and Amit Singer. "Fast expansion into harmonics on the ball." SIAM Journal on Scientific Computing 47, no. 2 (2025): A1117-A1144. https://doi.org/10.1137/24M1668159
 
 Arxiv link: https://arxiv.org/abs/2406.05922
 
